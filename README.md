@@ -48,7 +48,7 @@ Key variables include:
 
 | User churn | Device usage |
 |-----------|--------------|
-| ![Churn distribution](images/churn_distribution.png) | ![Device distribution](images/device_distribution.png) |
+| ![Churn distribution](images/4_cell28_out0.png) | ![Device distribution](images/device_distribution.png) |
 
 Most users were retained during the month, creating a class imbalance that increases the difficulty of churn prediction. Device usage is skewed toward iPhone, but device type alone does not explain churn.
 
