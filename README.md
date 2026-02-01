@@ -2,103 +2,92 @@
 
 ## Executive Summary
 
-This project analyzes monthly user churn for the Waze navigation app and evaluates how effectively behavioral data can identify users at risk of leaving the platform.
+This project analyzes monthly user churn for the Waze navigation app and evaluates whether user behavior data can be used to identify users at risk of leaving the platform.
 
-The work demonstrates an end-to-end analytics workflow, from data validation and exploratory analysis to predictive modeling and business recommendations.
+The analysis follows an end-to-end analytics workflow, including exploratory data analysis, statistical testing, feature engineering, and predictive modeling using both traditional statistics and machine learning.
 
-Outcome  
-Machine learning models improved churn detection compared to a statistical baseline, but results indicate that more granular data is required for reliable churn prediction.
+Key outcome:  
+Advanced models improved churn detection compared to a statistical baseline, but results show that additional and more granular data would be required for reliable churn prediction in production.
 
 ---
 
 ## Business Context
 
-Waze relies on active users to maintain accurate, real-time navigation data. When users churn, both engagement and network value decline.
+Waze depends on active users to maintain accurate, real-time navigation data. User churn reduces both engagement and the quality of crowd-sourced insights.
 
-This project focuses on monthly churn, defined as users who stopped using or uninstalled the app within a given month. The goal is to understand behavioral drivers of churn and assess whether predictive models can support retention strategies.
+Churn in this project is defined as users who stopped using or uninstalled the app within a single month. The objective is to understand which usage patterns correlate with churn and to assess whether churn can be predicted early enough to support retention strategies.
 
 ---
 
 ## What This Project Demonstrates
 
-- Framing a business problem as a measurable analytics question
-- Cleaning and validating real-world user data
-- Translating exploratory analysis into modeling decisions
-- Applying statistical hypothesis testing correctly
+- Translating a business problem into an analytics problem
+- Cleaning and validating real-world behavioral data
+- Performing exploratory data analysis to surface risk signals
+- Applying hypothesis testing correctly
 - Engineering features to improve model signal
-- Selecting evaluation metrics based on business risk
-- Communicating results clearly to non-technical stakeholders
+- Evaluating classification models using business-relevant metrics
+- Communicating insights clearly for non-technical stakeholders
 
 ---
 
 ## Data Overview
 
-Each row represents one user from a single month of activity.
+Each row represents one user’s activity during a single month.
 
 Key variables include:
-- sessions
-- drives
-- kilometers driven
-- driving duration in minutes
-- active days and driving days
-- device type
-- churn label
+- Number of sessions
+- Number of drives
+- Kilometers driven
+- Drive duration in minutes
+- Activity days and driving days
+- Device type
+- Churn label
 
-### Class Balance and Device Split
+### Class Balance and Device Distribution
 
-| Churn distribution | Device distribution |
-|---|---|
-| ![Churn distribution](images/4_cell65_out0.png) | ![Device distribution](images/4_cell62_out0.png) |
+| User churn | Device usage |
+|-----------|--------------|
+| ![Churn distribution](images/churn_distribution.png) | ![Device distribution](images/device_distribution.png) |
 
-Left: retained vs churned users. Right: Android vs iPhone usage split.
-
----
-
-## Analytical Workflow
-
-1. Inspect and validate the dataset
-2. Explore behavioral patterns and outliers
-3. Test assumptions with hypothesis testing
-4. Build a baseline predictive model
-5. Improve performance using tree-based models
-6. Translate findings into business recommendations
+Most users were retained during the month, creating a class imbalance that increases the difficulty of churn prediction. Device usage is skewed toward iPhone, but device type alone does not explain churn.
 
 ---
 
 ## Exploratory Data Analysis
 
-User behavior varies widely, with strong right-skew and extreme outliers across engagement metrics.
+User engagement varies significantly, with strong right-skew and extreme outliers across multiple metrics.
 
-### Session Activity Patterns
+### Session Activity
 
-| Distribution | Outliers |
-|---|---|
-| ![Sessions histogram](images/4_cell29_out0.png) | ![Sessions boxplot](images/4_cell28_out0.png) |
+| Session distribution | Session outliers |
+|---------------------|------------------|
+| ![Sessions histogram](images/sessions_histogram.png) | ![Sessions boxplot](images/sessions_boxplot.png) |
 
-Most users cluster near the median, with a long tail of high-usage users.
+Most users cluster around the median number of sessions, but a small group of high-usage users forms a long tail. These users may represent power users, professional drivers, or data anomalies.
 
-### Driving Intensity
+### Driving Distance
 
-![Kilometers driven distribution](images/4_cell47_out0.png)
+![Kilometers driven histogram](images/kilometers_histogram.png)
 
-Driving distance varies substantially, suggesting different usage profiles.
+Driving distance also shows wide variability, suggesting distinct usage profiles across the user base.
 
 ### Feature Relationships
 
-![Driving days vs activity days](images/4_cell72_out0.png)
+![Driving days vs activity days](images/driving_days_vs_activity_days.png)
 
-Driving days and activity days are highly correlated, indicating feature redundancy.
+Driving days and activity days are highly correlated, indicating redundant information that must be handled carefully during modeling.
 
 ---
 
 ## Hypothesis Testing
 
-A two-sample t-test evaluated whether average monthly drives differ between iPhone and Android users.
+A two-sample t-test was conducted to evaluate whether average monthly drives differ between iPhone and Android users.
 
-Results
-- iPhone mean drives: `67.86`
-- Android mean drives: `66.23`
-- p-value: `0.143`
+Results:
+- iPhone mean drives: 67.86
+- Android mean drives: 66.23
+- p-value: 0.143
 
 The null hypothesis was not rejected. Device type does not meaningfully explain usage differences or churn risk.
 
@@ -109,75 +98,81 @@ The null hypothesis was not rejected. Device type does not meaningfully explain 
 A binomial logistic regression model was built as a baseline predictor.
 
 Additional engineered features included:
-- kilometers per driving day
-- professional driver flag, defined as more than 60 drives per month
+- Kilometers per driving day
+- Professional driver indicator (more than 60 drives per month)
 
-Professional drivers churned at a substantially lower rate than non-professional users.
+![Correlation heatmap](images/correlation_heatmap.png)
 
-![Correlation heatmap](images/6_cell53_out0.png)
+Strong correlations between several features required removal of redundant variables prior to modeling.
 
-Strong correlations required removal of redundant features before modeling.
+Baseline model performance:
+- Accuracy: 0.82
+- Precision: 0.52
+- Recall: 0.09
+- F1 score: 0.16
 
-Model performance
-- Accuracy: `0.82`
-- Precision: `0.52`
-- Recall: `0.09`
-- F1 score: `0.16`
+The low recall indicates that many churned users were missed, limiting the model’s usefulness for proactive retention.
 
----
-
-## Model Comparison
-
-| Logistic Regression | XGBoost |
-|---|---|
-| ![Logistic regression confusion matrix](images/6_cell86_out0.png) | ![XGBoost confusion matrix](images/7_cell100_out0.png) |
-
-XGBoost improves churn detection compared to the baseline, but many churners are still missed.
+![Logistic regression confusion matrix](images/logreg_confusion_matrix.png)
 
 ---
 
-## Advanced Model: XGBoost
+## Advanced Models: Random Forest and XGBoost
 
-XGBoost was selected as the champion model due to improved recall and balanced performance.
+Tree-based models were trained to capture non-linear relationships and feature interactions.
 
-Final test performance
-- Accuracy: `0.81`
-- Precision: `0.39`
-- Recall: `0.17`
-- F1 score: `0.23`
+### Model Comparison
 
-![XGBoost feature importance](images/7_cell103_out0.png)
+| Logistic regression | XGBoost |
+|--------------------|---------|
+| ![Logistic regression confusion matrix](images/logreg_confusion_matrix.png) | ![XGBoost confusion matrix](images/xgb_confusion_matrix.png) |
 
-Most high-impact predictors are engineered features, highlighting the value of feature creation.
+XGBoost was selected as the champion model due to improved recall while maintaining reasonable precision.
+
+Final XGBoost performance:
+- Accuracy: 0.81
+- Precision: 0.39
+- Recall: 0.17
+- F1 score: 0.23
+
+Although improved, performance remains insufficient for high-confidence churn prediction.
+
+---
+
+## Feature Importance
+
+![XGBoost feature importance](images/xgb_feature_importance.png)
+
+Most of the strongest predictors were engineered features rather than raw inputs, highlighting the importance of feature engineering. Behavioral intensity and recency signals were more informative than simple usage counts.
 
 ---
 
 ## Interpretation and Limitations
 
-While tree-based models improved churn detection, performance remains constrained by data granularity. Aggregated behavioral features alone are insufficient for strong churn prediction.
+While machine learning models improved churn detection relative to a baseline, performance is constrained by data granularity. Aggregated monthly metrics do not fully capture behavioral intent or user satisfaction.
 
-Additional contextual data would likely improve model effectiveness.
+More detailed temporal and contextual data would likely improve predictive performance.
 
 ---
 
 ## Recommendations
 
-- Collect more detailed behavioral and contextual data
-- Expand feature engineering efforts
-- Investigate high-distance and irregular-use users separately
+- Collect more granular behavioral and temporal data
+- Expand feature engineering focused on engagement patterns
+- Analyze high-distance and irregular-use users separately
 - Maintain parity between Android and iPhone experiences
-- Treat churn modeling as an iterative process
+- Treat churn modeling as an iterative, continuously improved process
 
 ---
 
 ## Repository Structure
 
-- `notebooks/` for analysis notebooks in execution order
-- `images/` for charts referenced in this README
-- `reports/` for executive summaries and supporting material
+- `notebooks/` – analysis notebooks in execution order
+- `images/` – figures used in this README
+- `reports/` – summaries and supporting material
 
 ---
 
 ## Final Note
 
-This project was completed as part of the Google Advanced Data Analytics Certificate and reflects applied skills in data analysis, statistics, and machine learning using a real-world business scenario.
+This project was completed as part of the Google Advanced Data Analytics Certificate and reflects applied skills in data analysis, statistics, and machine learning using a realistic business scenario.
